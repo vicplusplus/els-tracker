@@ -11,4 +11,5 @@ public class Character
     public bool Challenge { get; set; }
     public bool Atma { get; set; }
     public bool Henir { get; set; }
+    public string Notes { get; set; } = "";
 }

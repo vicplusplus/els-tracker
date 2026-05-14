@@ -60,6 +60,30 @@
             </Setter>
         </Style>
 
+        <!-- Notes textbox (left-aligned, fills remaining space) -->
+        <Style x:Key="NotesTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#E6E6E6"/>
+            <Setter Property="CaretBrush" Value="#E6E6E6"/>
+            <Setter Property="BorderBrush" Value="#3A3D45"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="6,8"/>
+            <Setter Property="TextWrapping" Value="NoWrap"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#1A1C20"/>
+                    <Setter Property="BorderBrush" Value="#525762"/>
+                </Trigger>
+                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter Property="Background" Value="#11151D"/>
+                    <Setter Property="BorderBrush" Value="#5B8DEF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <!-- IGN textbox -->
         <Style x:Key="IgnTextBox" TargetType="TextBox">
             <Setter Property="Background" Value="Transparent"/>
@@ -412,6 +436,16 @@
                             <CheckBox IsChecked="{Binding Henir, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                       Style="{StaticResource WeeklyCheck}"
                                       Tag="{DynamicResource HenirBrush}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <!-- Notes (fills remaining space) -->
+                <DataGridTemplateColumn Header="Notes" Width="*" MinWidth="180" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                     Style="{StaticResource NotesTextBox}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

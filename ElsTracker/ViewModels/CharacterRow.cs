@@ -48,6 +48,12 @@ public class CharacterRow : ObservableObject
     public bool Atma      { get => _model.Atma;      set { if (_model.Atma      != value) { _model.Atma      = value; OnPropertyChanged(); } } }
     public bool Henir     { get => _model.Henir;     set { if (_model.Henir     != value) { _model.Henir     = value; OnPropertyChanged(); } } }
 
+    public string Notes
+    {
+        get => _model.Notes;
+        set { if (_model.Notes != value) { _model.Notes = value ?? ""; OnPropertyChanged(); } }
+    }
+
     public void ClearWeeklies()
     {
         Doom = Serp = Abyss = Challenge = Atma = Henir = false;
