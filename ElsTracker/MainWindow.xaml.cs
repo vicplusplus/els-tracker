@@ -152,8 +152,13 @@ public partial class MainWindow : Window
         view.Filter = text.Length == 0
             ? null
             : (Predicate<object>)(item =>
-                item is ClassItem ci &&
-                ci.Name.IndexOf(text, StringComparison.OrdinalIgnoreCase) >= 0);
+            {
+                if (item is not ClassItem ci) return false;
+                if (ci.Name.IndexOf(text, StringComparison.OrdinalIgnoreCase) >= 0) return true;
+                var abbr = EmoteService.AbbrevFor(ci.Name);
+                return !string.IsNullOrEmpty(abbr)
+                    && abbr.IndexOf(text, StringComparison.OrdinalIgnoreCase) >= 0;
+            });
     }
 
     private void SearchBox_KeyDown(object sender, KeyEventArgs e)
