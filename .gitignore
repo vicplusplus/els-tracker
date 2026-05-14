@@ -33,3 +33,6 @@ $RECYCLE.BIN/
 
 # Logs
 *.log
+
+# Claude
+.claude/
