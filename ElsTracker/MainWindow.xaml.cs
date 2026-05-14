@@ -16,6 +16,9 @@ public partial class MainWindow : Window
 {
     private readonly MainViewModel _vm;
     private readonly DispatcherTimer _timer;
+    private Point _rowDragStartPoint;
+    private CharacterRow? _draggedRow;
+    private const string RowDragFormat = "ElsTracker.CharacterRow";
 
     // DWM attribute for dark title bar (Win10 2004+ / Win11).
     private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
@@ -137,6 +140,159 @@ public partial class MainWindow : Window
             Keyboard.ClearFocus();
             FocusManager.SetFocusedElement(this, this);
         }
+    }
+
+    private void Row_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is DependencyObject dep)
+        {
+            if (FindAncestor<TextBox>(dep) != null) return;
+            if (FindAncestor<ButtonBase>(dep) != null) return;
+            if (FindAncestor<Popup>(dep) != null) return;
+        }
+
+        if (sender is DataGridRow row && row.Item is CharacterRow rowData)
+        {
+            _rowDragStartPoint = e.GetPosition(this);
+            _draggedRow = rowData;
+        }
+    }
+
+    private void Row_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed || _draggedRow == null)
+            return;
+
+        var currentPosition = e.GetPosition(this);
+        var deltaX = Math.Abs(currentPosition.X - _rowDragStartPoint.X);
+        var deltaY = Math.Abs(currentPosition.Y - _rowDragStartPoint.Y);
+        if (deltaX < SystemParameters.MinimumHorizontalDragDistance &&
+            deltaY < SystemParameters.MinimumVerticalDragDistance)
+            return;
+
+        var data = new DataObject(RowDragFormat, _draggedRow);
+        var dragged = _draggedRow;
+        _draggedRow = null;
+        DragDrop.DoDragDrop(TheGrid, data, DragDropEffects.Move);
+        _draggedRow = null;
+    }
+
+    private void Row_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        _draggedRow = null;
+    }
+
+    private void Row_DragOver(object sender, DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(RowDragFormat))
+        {
+            e.Effects = DragDropEffects.None;
+            e.Handled = true;
+            return;
+        }
+
+        if (sender is DataGridRow targetRow && targetRow.Item is CharacterRow targetRowData)
+        {
+            var sourceRow = e.Data.GetData(RowDragFormat) as CharacterRow;
+            e.Effects = (sourceRow != null && sourceRow != targetRowData)
+                ? DragDropEffects.Move
+                : DragDropEffects.None;
+        }
+        else
+        {
+            e.Effects = DragDropEffects.None;
+        }
+
+        e.Handled = true;
+    }
+
+    private void MoveDraggedRow(CharacterRow sourceRow, int targetIndex, bool insertAfter)
+    {
+        if (DataContext is not MainViewModel vm) return;
+        var rows = vm.Rows;
+        var sourceIndex = rows.IndexOf(sourceRow);
+        if (sourceIndex < 0) return;
+
+        var desiredIndex = targetIndex + (insertAfter ? 1 : 0);
+        if (desiredIndex < 0) desiredIndex = 0;
+        if (desiredIndex > rows.Count) desiredIndex = rows.Count;
+
+        if (desiredIndex == rows.Count)
+        {
+            if (sourceIndex == rows.Count - 1) return;
+            rows.Move(sourceIndex, rows.Count - 1);
+            CommandManager.InvalidateRequerySuggested();
+            return;
+        }
+
+        if (sourceIndex < desiredIndex)
+            desiredIndex--;
+
+        if (desiredIndex < 0 || desiredIndex >= rows.Count || desiredIndex == sourceIndex)
+            return;
+
+        rows.Move(sourceIndex, desiredIndex);
+        CommandManager.InvalidateRequerySuggested();
+    }
+
+    private void Row_Drop(object sender, DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(RowDragFormat)) return;
+        if (e.Data.GetData(RowDragFormat) is not CharacterRow sourceRow) return;
+        if (sender is not DataGridRow targetRow) return;
+        if (targetRow.Item is not CharacterRow targetRowData) return;
+        if (sourceRow == targetRowData) return;
+
+        var position = e.GetPosition(targetRow);
+        var insertAfter = position.Y > targetRow.ActualHeight / 2;
+        var targetIndex = (DataContext is MainViewModel vm) ? vm.Rows.IndexOf(targetRowData) : -1;
+        if (targetIndex < 0) return;
+
+        MoveDraggedRow(sourceRow, targetIndex, insertAfter);
+    }
+
+    private void TheGrid_DragOver(object sender, DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(RowDragFormat))
+        {
+            e.Effects = DragDropEffects.None;
+            e.Handled = true;
+            return;
+        }
+
+        e.Effects = DragDropEffects.Move;
+        e.Handled = true;
+    }
+
+    private void TheGrid_Drop(object sender, DragEventArgs e)
+    {
+        if (!e.Data.GetDataPresent(RowDragFormat)) return;
+        if (e.Data.GetData(RowDragFormat) is not CharacterRow sourceRow) return;
+        if (DataContext is not MainViewModel vm) return;
+
+        if (e.OriginalSource is DependencyObject dep)
+        {
+            var targetRow = FindAncestor<DataGridRow>(dep);
+            if (targetRow?.Item is CharacterRow targetRowData)
+            {
+                var position = e.GetPosition(targetRow);
+                var insertAfter = position.Y > targetRow.ActualHeight / 2;
+                var targetIndex = vm.Rows.IndexOf(targetRowData);
+                if (targetIndex >= 0)
+                {
+                    MoveDraggedRow(sourceRow, targetIndex, insertAfter);
+                    return;
+                }
+            }
+        }
+
+        MoveDraggedRow(sourceRow, vm.Rows.Count, false);
+    }
+
+    private void TheGrid_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        // Drag initiation is handled at the row level via Row_PreviewMouseLeftButtonDown.
+        // This method is a placeholder for grid-level interactions if needed in the future.
     }
 
     // ---- class picker handlers ----

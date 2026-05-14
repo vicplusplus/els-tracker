@@ -332,16 +332,20 @@
                   CanUserResizeRows="False"
                   CanUserReorderColumns="False"
                   CanUserSortColumns="False"
+                  AllowDrop="True"
                   RowHeight="60"
                   Background="#1E1F22"
                   Foreground="#E6E6E6"
                   GridLinesVisibility="Horizontal"
                   HorizontalGridLinesBrush="#2E3036"
                   RowBackground="#23242A"
+                  PreviewMouseLeftButtonDown="TheGrid_PreviewMouseLeftButtonDown"
                   AlternatingRowBackground="#262830"
                   BorderBrush="#2E3036"
                   SelectionMode="Single"
                   SelectionUnit="FullRow"
+                  DragOver="TheGrid_DragOver"
+                  Drop="TheGrid_Drop"
                   ColumnHeaderHeight="44">
 
             <DataGrid.Resources>
@@ -378,6 +382,11 @@
                     </Style.Triggers>
                 </Style>
                 <Style TargetType="DataGridRow">
+                    <EventSetter Event="PreviewMouseLeftButtonDown" Handler="Row_PreviewMouseLeftButtonDown"/>
+                    <EventSetter Event="PreviewMouseMove" Handler="Row_PreviewMouseMove"/>
+                    <EventSetter Event="PreviewMouseLeftButtonUp" Handler="Row_PreviewMouseLeftButtonUp"/>
+                    <EventSetter Event="DragOver" Handler="Row_DragOver"/>
+                    <EventSetter Event="Drop" Handler="Row_Drop"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding IsSelected}" Value="True">
                             <Setter Property="Background" Value="#2D3543"/>
