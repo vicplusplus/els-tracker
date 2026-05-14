@@ -64,6 +64,29 @@ public partial class MainWindow : Window
         _vm.CopyRaidUncleared(raid);
     }
 
+    private void RaidCell_RightClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (sender is not CheckBox cb) return;
+        if (cb.DataContext is not CharacterRow row) return;
+        if (cb.CommandParameter is not string raid) return;
+
+        ToggleRaidExcluded(row, raid);
+        e.Handled = true;
+    }
+
+    private static void ToggleRaidExcluded(CharacterRow row, string raid)
+    {
+        switch (raid)
+        {
+            case "Doom": row.DoomExcluded = !row.DoomExcluded; break;
+            case "Serp": row.SerpExcluded = !row.SerpExcluded; break;
+            case "Abyss": row.AbyssExcluded = !row.AbyssExcluded; break;
+            case "Challenge": row.ChallengeExcluded = !row.ChallengeExcluded; break;
+            case "Atma": row.AtmaExcluded = !row.AtmaExcluded; break;
+            case "Henir": row.HenirExcluded = !row.HenirExcluded; break;
+        }
+    }
+
     // ---- focus newly added row's IGN field ----
 
     private void FocusIgnFor(CharacterRow row)

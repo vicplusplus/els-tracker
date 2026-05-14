@@ -79,6 +79,8 @@ public class MainViewModel : ObservableObject
     public ICommand CompleteSelectedCommand { get; }
     public ICommand ResetSelectedCommand { get; }
     public ICommand DeleteSelectedCommand { get; }
+    public ICommand MoveUpRowCommand { get; }
+    public ICommand MoveDownRowCommand { get; }
     public ICommand OpenThemeCommand { get; }
     public ICommand OpenEmotesCommand { get; }
     public ICommand CopyRaidUnclearedCommand { get; }
@@ -104,6 +106,8 @@ public class MainViewModel : ObservableObject
         DeleteSelectedCommand = new RelayCommand(_ => BulkDelete(), _ => HasSelection);
         OpenThemeCommand = new RelayCommand(_ => OpenFile(ThemeService.FilePath));
         OpenEmotesCommand = new RelayCommand(_ => OpenFile(EmoteService.FilePath));
+        MoveUpRowCommand = new RelayCommand(p => MoveRow(p as CharacterRow, -1), p => CanMoveRow(p as CharacterRow, -1));
+        MoveDownRowCommand = new RelayCommand(p => MoveRow(p as CharacterRow, 1), p => CanMoveRow(p as CharacterRow, 1));
         CopyRaidUnclearedCommand = new RelayCommand(p =>
         {
             if (p is string raid) CopyRaidUncleared(raid);
@@ -162,6 +166,24 @@ public class MainViewModel : ObservableObject
         DataStore.Save(_data);
     }
 
+    private bool CanMoveRow(CharacterRow? row, int offset)
+    {
+        if (row == null) return false;
+        var index = Rows.IndexOf(row);
+        return index >= 0 && index + offset >= 0 && index + offset < Rows.Count;
+    }
+
+    private void MoveRow(CharacterRow? row, int offset)
+    {
+        if (row == null) return;
+        var index = Rows.IndexOf(row);
+        if (index < 0) return;
+        var newIndex = index + offset;
+        if (newIndex < 0 || newIndex >= Rows.Count) return;
+        Rows.Move(index, newIndex);
+        CommandManager.InvalidateRequerySuggested();
+    }
+
     private void AddCharacter()
     {
         var row = WireRow(new CharacterRow(new Character()));
@@ -208,12 +230,12 @@ public class MainViewModel : ObservableObject
 
     private static bool RaidCleared(CharacterRow r, string raid) => raid switch
     {
-        "Doom"      => r.Doom,
-        "Serp"      => r.Serp,
-        "Abyss"     => r.Abyss,
-        "Challenge" => r.Challenge,
-        "Atma"      => r.Atma,
-        "Henir"     => r.Henir,
+        "Doom"      => r.Doom || r.DoomExcluded,
+        "Serp"      => r.Serp || r.SerpExcluded,
+        "Abyss"     => r.Abyss || r.AbyssExcluded,
+        "Challenge" => r.Challenge || r.ChallengeExcluded,
+        "Atma"      => r.Atma || r.AtmaExcluded,
+        "Henir"     => r.Henir || r.HenirExcluded,
         _           => true,
     };
 

@@ -42,11 +42,17 @@ public class CharacterRow : ObservableObject
     }
 
     public bool Doom      { get => _model.Doom;      set { if (_model.Doom      != value) { _model.Doom      = value; OnPropertyChanged(); } } }
+    public bool DoomExcluded { get => _model.DoomExcluded; set { if (_model.DoomExcluded != value) { _model.DoomExcluded = value; OnPropertyChanged(); } } }
     public bool Serp      { get => _model.Serp;      set { if (_model.Serp      != value) { _model.Serp      = value; OnPropertyChanged(); } } }
+    public bool SerpExcluded { get => _model.SerpExcluded; set { if (_model.SerpExcluded != value) { _model.SerpExcluded = value; OnPropertyChanged(); } } }
     public bool Abyss     { get => _model.Abyss;     set { if (_model.Abyss     != value) { _model.Abyss     = value; OnPropertyChanged(); } } }
+    public bool AbyssExcluded { get => _model.AbyssExcluded; set { if (_model.AbyssExcluded != value) { _model.AbyssExcluded = value; OnPropertyChanged(); } } }
     public bool Challenge { get => _model.Challenge; set { if (_model.Challenge != value) { _model.Challenge = value; OnPropertyChanged(); } } }
+    public bool ChallengeExcluded { get => _model.ChallengeExcluded; set { if (_model.ChallengeExcluded != value) { _model.ChallengeExcluded = value; OnPropertyChanged(); } } }
     public bool Atma      { get => _model.Atma;      set { if (_model.Atma      != value) { _model.Atma      = value; OnPropertyChanged(); } } }
+    public bool AtmaExcluded { get => _model.AtmaExcluded; set { if (_model.AtmaExcluded != value) { _model.AtmaExcluded = value; OnPropertyChanged(); } } }
     public bool Henir     { get => _model.Henir;     set { if (_model.Henir     != value) { _model.Henir     = value; OnPropertyChanged(); } } }
+    public bool HenirExcluded { get => _model.HenirExcluded; set { if (_model.HenirExcluded != value) { _model.HenirExcluded = value; OnPropertyChanged(); } } }
 
     public string Notes
     {
