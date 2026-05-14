@@ -4,6 +4,7 @@
         xmlns:vm="clr-namespace:ElsTracker.ViewModels"
         xmlns:conv="clr-namespace:ElsTracker.Converters"
         Title="Elsword Weekly Tracker" Height="680" Width="1180"
+        Icon="pack://application:,,,/app.ico"
         Background="#1E1F22" Foreground="#E6E6E6"
         WindowStartupLocation="CenterScreen"
         PreviewMouseDown="Window_PreviewMouseDown">

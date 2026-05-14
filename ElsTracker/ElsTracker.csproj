@@ -9,12 +9,14 @@
     <RootNamespace>ElsTracker</RootNamespace>
     <AssemblyName>ElsTracker</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>app.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\Classes\*.png" Link="Classes\%(Filename)%(Extension)">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Resource Include="app.ico" />
   </ItemGroup>
 
 </Project>
