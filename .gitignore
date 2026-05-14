@@ -20,8 +20,6 @@ publish/
 project.lock.json
 
 # Local config / secrets
-*.pfx
-*.snk
 *.pubxml
 .env
 .env.local

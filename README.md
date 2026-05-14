@@ -31,9 +31,8 @@ Download the latest `ElsTracker.exe` from the
 [Releases page](../../releases) and run it. No installer, no .NET runtime
 required (self-contained single-file build).
 
-On first launch Windows SmartScreen may show a warning if the binary is
-unsigned or has not yet built reputation — click **More info → Run anyway**.
-See [Code signing](#code-signing) below for how releases are signed.
+The exe is unsigned, so on first launch Windows SmartScreen will show a
+"Windows protected your PC" warning. Click **More info → Run anyway**.
 
 ## Config files
 
@@ -126,36 +125,6 @@ dotnet publish ElsTracker/ElsTracker.csproj `
 Output: `publish/ElsTracker.exe` — a single self-contained Windows binary.
 `Classes/*.png` are embedded in the bundle and extracted alongside the exe
 on first run (handled by the .NET runtime, not your code).
-
-## Code signing
-
-Unsigned binaries trigger SmartScreen "Windows protected your PC" warnings
-until they accumulate reputation. The release workflow signs `ElsTracker.exe`
-automatically when the following repository secrets are set:
-
-| Secret name             | Contents                                        |
-| ----------------------- | ----------------------------------------------- |
-| `SIGNING_CERT_BASE64`   | Base64-encoded PFX bytes (`certutil -encode` or `base64 cert.pfx`). |
-| `SIGNING_CERT_PASSWORD` | The PFX password.                               |
-| `SIGNING_TIMESTAMP_URL` | _Optional._ Defaults to `http://timestamp.digicert.com`. |
-
-If the secrets are missing the workflow still publishes — the binary is just
-unsigned.
-
-### Choosing a certificate
-
-| Option                              | Cost          | SmartScreen     | Notes                         |
-| ----------------------------------- | ------------- | --------------- | ----------------------------- |
-| Self-signed (`New-SelfSignedCertificate`) | Free          | No bypass       | OK for personal use, identifies the binary, no public trust. |
-| Standard OV code-signing cert       | ~$200/yr      | Trust over time | DigiCert, Sectigo, SSL.com.   |
-| EV code-signing cert                | ~$400+/yr     | **Immediate**   | Stored on hardware token or in HSM. |
-| Azure Trusted Signing               | ~$10/mo       | Yes (Public Trust SKU) | No physical token; integrates well with GitHub Actions via OIDC. |
-| SignPath.io free OSS tier           | Free (manual review) | Yes      | Project must qualify as open source.            |
-
-For a personal tool, self-signed is enough to put a real Authenticode
-signature on the exe (better than nothing — gives users a publisher name they
-can choose to trust). For wider distribution, Azure Trusted Signing is the
-cheapest path to genuine SmartScreen trust.
 
 ## License
 
