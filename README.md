@@ -103,7 +103,7 @@ as a fallback.
 ## Develop locally
 
 ```powershell
-git clone https://github.com/<your-org>/els-tracker.git
+git clone https://github.com/vicplusplus/els-tracker.git
 cd els-tracker
 dotnet run --project ElsTracker
 ```
