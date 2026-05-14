@@ -1,8 +1,10 @@
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 using ElsTracker.Services;
@@ -14,6 +16,24 @@ public partial class MainWindow : Window
 {
     private readonly MainViewModel _vm;
     private readonly DispatcherTimer _timer;
+
+    // DWM attribute for dark title bar (Win10 2004+ / Win11).
+    private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
+    [DllImport("dwmapi.dll", PreserveSig = true)]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        try
+        {
+            var hwnd = new WindowInteropHelper(this).Handle;
+            int useDark = 1;
+            DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDark, sizeof(int));
+        }
+        catch { /* older Windows: silently fall back to light chrome */ }
+    }
 
     public MainWindow()
     {
