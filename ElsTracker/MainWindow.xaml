@@ -1,0 +1,435 @@
+<Window x:Class="ElsTracker.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ElsTracker.ViewModels"
+        xmlns:conv="clr-namespace:ElsTracker.Converters"
+        Title="Elsword Weekly Tracker" Height="680" Width="1180"
+        Background="#1E1F22" Foreground="#E6E6E6"
+        WindowStartupLocation="CenterScreen"
+        PreviewMouseDown="Window_PreviewMouseDown">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:InverseBoolToVisibilityConverter x:Key="InvBoolToVis"/>
+
+        <!-- Themed weekly checkbox -->
+        <Style x:Key="WeeklyCheck" TargetType="CheckBox">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid>
+                            <Border x:Name="OuterBox" Width="32" Height="32" CornerRadius="7"
+                                    Background="#23262C"
+                                    BorderBrush="{TemplateBinding Tag}"
+                                    BorderThickness="2"
+                                    SnapsToDevicePixels="True"/>
+                            <Border x:Name="Fill" Width="32" Height="32" CornerRadius="7"
+                                    Background="{TemplateBinding Tag}"
+                                    Opacity="0"/>
+                            <Viewbox x:Name="Glyph" Width="20" Height="20"
+                                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                                     Visibility="Collapsed">
+                                <Path Data="M2,8 L7,13 L16,3"
+                                      Stroke="White" StrokeThickness="2.5"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round"/>
+                            </Viewbox>
+                            <Ellipse x:Name="Tri" Width="6" Height="6"
+                                     Fill="{TemplateBinding Tag}"
+                                     Visibility="Collapsed"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Fill" Property="Opacity" Value="1"/>
+                                <Setter TargetName="Glyph" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="{x:Null}">
+                                <Setter TargetName="Tri" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="OuterBox" Property="Background" Value="#2D3038"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- IGN textbox -->
+        <Style x:Key="IgnTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#E6E6E6"/>
+            <Setter Property="CaretBrush" Value="#E6E6E6"/>
+            <Setter Property="BorderBrush" Value="#3A3D45"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="6,8"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#1A1C20"/>
+                    <Setter Property="BorderBrush" Value="#525762"/>
+                </Trigger>
+                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter Property="Background" Value="#11151D"/>
+                    <Setter Property="BorderBrush" Value="#5B8DEF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Toolbar action button -->
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="Background" Value="#2A2C33"/>
+            <Setter Property="Foreground" Value="#E6E6E6"/>
+            <Setter Property="BorderBrush" Value="#3D4148"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="B" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="#34373F"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Add row -->
+        <Style x:Key="AddRowButton" TargetType="Button">
+            <Setter Property="Background" Value="#23262C"/>
+            <Setter Property="Foreground" Value="#A8B0BC"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="B" Background="{TemplateBinding Background}"
+                                BorderBrush="#3D4148" BorderThickness="1"
+                                CornerRadius="6" SnapsToDevicePixels="True">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="BorderBrush" Value="#3D4148"/>
+                                </Style>
+                            </Border.Style>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="#2A2D34"/>
+                                <Setter Property="Foreground" Value="#E6E6E6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <Grid Grid.Row="0" Margin="10,10,10,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <Button Content="Complete selected"
+                        Command="{Binding CompleteSelectedCommand}"
+                        Style="{StaticResource ActionButton}"/>
+                <Button Content="Reset selected"
+                        Command="{Binding ResetSelectedCommand}"
+                        Style="{StaticResource ActionButton}"/>
+                <Button Content="Delete selected"
+                        Command="{Binding DeleteSelectedCommand}"
+                        Style="{StaticResource ActionButton}"/>
+                <TextBlock Text="{Binding SelectionStatus}"
+                           Foreground="#A8B0BC" Margin="10,0,0,0"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <TextBlock Grid.Column="1" Text="{Binding Toast}"
+                       Visibility="{Binding HasToast, Converter={StaticResource BoolToVis}}"
+                       Foreground="#7AAEFF" FontWeight="SemiBold"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <TextBlock Foreground="#A8B0BC" VerticalAlignment="Center" Margin="0,0,12,0">
+                    <Run Text="Challenge: "/>
+                    <Run Text="{Binding ChallengeName, Mode=OneWay}" FontWeight="SemiBold" Foreground="#E6E6E6"/>
+                </TextBlock>
+                <TextBlock Text="{Binding NextResetText}"
+                           ToolTip="{Binding NextResetTooltip}"
+                           Foreground="#E6E6E6" VerticalAlignment="Center"
+                           Margin="0,0,12,0"/>
+                <Button Content="Theme…"
+                        Command="{Binding OpenThemeCommand}"
+                        Style="{StaticResource ActionButton}"
+                        ToolTip="Open theme.json in default editor"/>
+                <Button Content="Emotes…"
+                        Command="{Binding OpenEmotesCommand}"
+                        Style="{StaticResource ActionButton}"
+                        ToolTip="Open emotes.json in default editor"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- DataGrid -->
+        <DataGrid x:Name="TheGrid" Grid.Row="1" Margin="10,0,10,8"
+                  ItemsSource="{Binding Rows}"
+                  AutoGenerateColumns="False"
+                  HeadersVisibility="Column"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  CanUserResizeRows="False"
+                  CanUserReorderColumns="False"
+                  CanUserSortColumns="False"
+                  RowHeight="60"
+                  Background="#1E1F22"
+                  Foreground="#E6E6E6"
+                  GridLinesVisibility="Horizontal"
+                  HorizontalGridLinesBrush="#2E3036"
+                  RowBackground="#23242A"
+                  AlternatingRowBackground="#262830"
+                  BorderBrush="#2E3036"
+                  SelectionMode="Single"
+                  SelectionUnit="FullRow"
+                  ColumnHeaderHeight="44">
+
+            <DataGrid.Resources>
+                <Style x:Key="DefaultHeader" TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#2A2C33"/>
+                    <Setter Property="Foreground" Value="#E6E6E6"/>
+                    <Setter Property="Padding" Value="8,6"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    <Setter Property="BorderBrush" Value="#2E3036"/>
+                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                </Style>
+                <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeader}"/>
+                <Style x:Key="RaidHeader" TargetType="DataGridColumnHeader" BasedOn="{StaticResource DefaultHeader}">
+                    <Setter Property="Cursor" Value="Hand"/>
+                    <Setter Property="ToolTip" Value="Click to copy uncleared list to clipboard"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#34373F"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="Foreground" Value="#E6E6E6"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="#FFFFFF"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                            <Setter Property="Background" Value="#2D3543"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.Resources>
+
+            <DataGrid.Columns>
+
+                <!-- Selection -->
+                <DataGridTemplateColumn Width="48" CanUserResize="False" IsReadOnly="True">
+                    <DataGridTemplateColumn.HeaderTemplate>
+                        <DataTemplate>
+                            <CheckBox IsThreeState="True"
+                                      IsChecked="{Binding DataContext.AllSelected, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}"
+                                      Style="{StaticResource WeeklyCheck}"
+                                      Tag="{StaticResource SelectBrush}"
+                                      ToolTip="Select all"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.HeaderTemplate>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      Style="{StaticResource WeeklyCheck}"
+                                      Tag="{StaticResource SelectBrush}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <!-- Class -->
+                <DataGridTemplateColumn Header="Class" Width="80" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <ToggleButton x:Name="ClassToggle" Background="Transparent"
+                                              BorderThickness="0" Padding="2"
+                                              Cursor="Hand"
+                                              Checked="ClassToggle_Checked">
+                                    <Grid>
+                                        <Image Source="{Binding IconPath}" Width="44" Height="44"
+                                               ToolTip="{Binding ClassName}"
+                                               Visibility="{Binding HasClass, Converter={StaticResource BoolToVis}}"/>
+                                        <TextBlock Text="Set class" Foreground="#8A93A0" FontSize="11"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Visibility="{Binding HasClass, Converter={StaticResource InvBoolToVis}}"/>
+                                    </Grid>
+                                </ToggleButton>
+
+                                <Popup x:Name="ClassPopup"
+                                       IsOpen="{Binding IsChecked, ElementName=ClassToggle}"
+                                       PlacementTarget="{Binding ElementName=ClassToggle}"
+                                       Placement="Bottom"
+                                       StaysOpen="False"
+                                       AllowsTransparency="True"
+                                       PopupAnimation="Fade">
+                                    <Border Background="#2A2C33" BorderBrush="#3D4148" BorderThickness="1"
+                                            Padding="6" CornerRadius="4">
+                                        <StackPanel x:Name="PopupRoot" Width="280">
+                                            <TextBox x:Name="SearchBox"
+                                                     Margin="0,0,0,6" Padding="4"
+                                                     Background="#1E1F22" Foreground="#E6E6E6"
+                                                     CaretBrush="#E6E6E6" BorderBrush="#3D4148"
+                                                     TextChanged="SearchBox_TextChanged"
+                                                     KeyDown="SearchBox_KeyDown"/>
+                                            <ListBox x:Name="ClassList"
+                                                     ItemsSource="{Binding DataContext.Classes, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                     MaxHeight="320"
+                                                     Background="#1E1F22" Foreground="#E6E6E6"
+                                                     BorderThickness="0"
+                                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                                     Loaded="ClassList_Loaded"
+                                                     PreviewMouseLeftButtonUp="ClassList_PreviewMouseLeftButtonUp">
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal" Margin="2">
+                                                            <Image Source="{Binding IconPath}" Width="28" Height="28" Margin="0,0,8,0"/>
+                                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Foreground="#E6E6E6"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                            </ListBox>
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <!-- IGN -->
+                <DataGridTemplateColumn x:Name="IgnColumn" Header="IGN" Width="200" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox x:Name="IgnBox"
+                                     Text="{Binding Ign, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                     Style="{StaticResource IgnTextBox}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <!-- Weeklies -->
+                <DataGridTemplateColumn Header="Doom" Width="80" IsReadOnly="True" HeaderStyle="{StaticResource RaidHeader}">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding Doom, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                      Style="{StaticResource WeeklyCheck}"
+                                      Tag="{DynamicResource DoomBrush}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Serp" Width="80" IsReadOnly="True" HeaderStyle="{StaticResource RaidHeader}">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding Serp, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                      Style="{StaticResource WeeklyCheck}"
+                                      Tag="{DynamicResource SerpBrush}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Abyss" Width="80" IsReadOnly="True" HeaderStyle="{StaticResource RaidHeader}">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding Abyss, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                      Style="{StaticResource WeeklyCheck}"
+                                      Tag="{DynamicResource AbyssBrush}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Challenge" Width="100" IsReadOnly="True" HeaderStyle="{StaticResource RaidHeader}">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding Challenge, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                      Style="{StaticResource WeeklyCheck}"
+                                      Tag="{DynamicResource ChallengeBrush}"
+                                      ToolTip="{Binding DataContext.ChallengeName, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Atma" Width="80" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding Atma, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                      Style="{StaticResource WeeklyCheck}"
+                                      Tag="{DynamicResource AtmaBrush}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Henir" Width="80" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding Henir, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                      Style="{StaticResource WeeklyCheck}"
+                                      Tag="{DynamicResource HenirBrush}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Add row -->
+        <Button Grid.Row="2" Margin="10,0,10,10" Height="42"
+                Content="+ Add character"
+                Command="{Binding AddCharacterCommand}"
+                Style="{StaticResource AddRowButton}"/>
+
+        <StatusBar Grid.Row="3" Background="#2A2C33">
+            <StatusBarItem>
+                <TextBlock Foreground="#7A8390">
+                    Auto-save · Auto-reset Wed 00:00 UTC · theme.json hot-reloads
+                </TextBlock>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>

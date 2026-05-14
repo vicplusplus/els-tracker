@@ -1,0 +1,14 @@
+<Application x:Class="ElsTracker.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <SolidColorBrush x:Key="DoomBrush"      Color="#1D4ED8"/>
+        <SolidColorBrush x:Key="SerpBrush"      Color="#84CC16"/>
+        <SolidColorBrush x:Key="AbyssBrush"     Color="#9333EA"/>
+        <SolidColorBrush x:Key="ChallengeBrush" Color="#DC2626"/>
+        <SolidColorBrush x:Key="AtmaBrush"      Color="#F97316"/>
+        <SolidColorBrush x:Key="HenirBrush"     Color="#0F766E"/>
+        <SolidColorBrush x:Key="SelectBrush"    Color="#7A8390"/>
+    </Application.Resources>
+</Application>

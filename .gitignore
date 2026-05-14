@@ -1,0 +1,37 @@
+# Build output
+bin/
+obj/
+out/
+publish/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / VS / VS Code
+.vs/
+.idea/
+.vscode/
+
+# .NET test / publish
+[Tt]est[Rr]esult*/
+[Pp]ublish[Pp]rofiles/
+*.lock.json
+project.lock.json
+
+# Local config / secrets
+*.pfx
+*.snk
+*.pubxml
+.env
+.env.local
+
+# OS junk
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Logs
+*.log
