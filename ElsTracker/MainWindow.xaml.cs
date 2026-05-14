@@ -182,6 +182,39 @@ public partial class MainWindow : Window
         _draggedRow = null;
     }
 
+    private void Handle_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.DataContext is CharacterRow rowData)
+        {
+            _rowDragStartPoint = e.GetPosition(this);
+            _draggedRow = rowData;
+        }
+    }
+
+    private void Handle_PreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed || _draggedRow == null)
+            return;
+
+        var currentPosition = e.GetPosition(this);
+        var deltaX = Math.Abs(currentPosition.X - _rowDragStartPoint.X);
+        var deltaY = Math.Abs(currentPosition.Y - _rowDragStartPoint.Y);
+        if (deltaX < SystemParameters.MinimumHorizontalDragDistance &&
+            deltaY < SystemParameters.MinimumVerticalDragDistance)
+            return;
+
+        var data = new DataObject(RowDragFormat, _draggedRow);
+        var dragged = _draggedRow;
+        _draggedRow = null;
+        DragDrop.DoDragDrop(TheGrid, data, DragDropEffects.Move);
+        _draggedRow = null;
+    }
+
+    private void Handle_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        _draggedRow = null;
+    }
+
     private void Row_DragOver(object sender, DragEventArgs e)
     {
         if (!e.Data.GetDataPresent(RowDragFormat))
@@ -244,7 +277,7 @@ public partial class MainWindow : Window
         if (sourceRow == targetRowData) return;
 
         var position = e.GetPosition(targetRow);
-        var insertAfter = position.Y > targetRow.ActualHeight / 2;
+        var insertAfter = position.Y > targetRow.ActualHeight * 0.6;
         var targetIndex = (DataContext is MainViewModel vm) ? vm.Rows.IndexOf(targetRowData) : -1;
         if (targetIndex < 0) return;
 
@@ -276,7 +309,7 @@ public partial class MainWindow : Window
             if (targetRow?.Item is CharacterRow targetRowData)
             {
                 var position = e.GetPosition(targetRow);
-                var insertAfter = position.Y > targetRow.ActualHeight / 2;
+                var insertAfter = position.Y > targetRow.ActualHeight * 0.6;
                 var targetIndex = vm.Rows.IndexOf(targetRowData);
                 if (targetIndex >= 0)
                 {

@@ -382,11 +382,6 @@
                     </Style.Triggers>
                 </Style>
                 <Style TargetType="DataGridRow">
-                    <EventSetter Event="PreviewMouseLeftButtonDown" Handler="Row_PreviewMouseLeftButtonDown"/>
-                    <EventSetter Event="PreviewMouseMove" Handler="Row_PreviewMouseMove"/>
-                    <EventSetter Event="PreviewMouseLeftButtonUp" Handler="Row_PreviewMouseLeftButtonUp"/>
-                    <EventSetter Event="DragOver" Handler="Row_DragOver"/>
-                    <EventSetter Event="Drop" Handler="Row_Drop"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding IsSelected}" Value="True">
                             <Setter Property="Background" Value="#2D3543"/>
@@ -396,6 +391,31 @@
             </DataGrid.Resources>
 
             <DataGrid.Columns>
+
+                <!-- Drag Handle -->
+                <DataGridTemplateColumn Width="30" Header="" CanUserResize="False" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Background="Transparent" Cursor="Hand"
+                                    PreviewMouseLeftButtonDown="Handle_PreviewMouseLeftButtonDown"
+                                    PreviewMouseMove="Handle_PreviewMouseMove"
+                                    PreviewMouseLeftButtonUp="Handle_PreviewMouseLeftButtonUp">
+                                <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="4" Height="4" Fill="#A8B0BC" Margin="1"/>
+                                        <Ellipse Width="4" Height="4" Fill="#A8B0BC" Margin="1"/>
+                                        <Ellipse Width="4" Height="4" Fill="#A8B0BC" Margin="1"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="4" Height="4" Fill="#A8B0BC" Margin="1"/>
+                                        <Ellipse Width="4" Height="4" Fill="#A8B0BC" Margin="1"/>
+                                        <Ellipse Width="4" Height="4" Fill="#A8B0BC" Margin="1"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
 
                 <!-- Selection -->
                 <DataGridTemplateColumn Width="48" CanUserResize="False" IsReadOnly="True">
