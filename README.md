@@ -9,7 +9,7 @@ emote messages.
 
 ## Features
 
-- One row per character: class icon, IGN, six weekly raid checkboxes
+- One row per character: class icon, IGN, six weekly clear checkboxes
   (Doom, Serp, Abyss, Challenge, Atma, Henir).
 - Class picker with searchable icon dropdown built from the `Classes/` folder
   — add a `.png` and it shows up next launch.
