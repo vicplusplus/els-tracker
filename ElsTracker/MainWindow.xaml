@@ -332,16 +332,20 @@
                   CanUserResizeRows="False"
                   CanUserReorderColumns="False"
                   CanUserSortColumns="False"
+                  AllowDrop="True"
                   RowHeight="60"
                   Background="#1E1F22"
                   Foreground="#E6E6E6"
                   GridLinesVisibility="Horizontal"
                   HorizontalGridLinesBrush="#2E3036"
                   RowBackground="#23242A"
+                  PreviewMouseLeftButtonDown="TheGrid_PreviewMouseLeftButtonDown"
                   AlternatingRowBackground="#262830"
                   BorderBrush="#2E3036"
                   SelectionMode="Single"
                   SelectionUnit="FullRow"
+                  DragOver="TheGrid_DragOver"
+                  Drop="TheGrid_Drop"
                   ColumnHeaderHeight="44">
 
             <DataGrid.Resources>
@@ -388,6 +392,31 @@
 
             <DataGrid.Columns>
 
+                <!-- Drag Handle -->
+                <DataGridTemplateColumn Width="30" Header="" CanUserResize="False" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Background="Transparent" Cursor="Hand"
+                                    PreviewMouseLeftButtonDown="Handle_PreviewMouseLeftButtonDown"
+                                    PreviewMouseMove="Handle_PreviewMouseMove"
+                                    PreviewMouseLeftButtonUp="Handle_PreviewMouseLeftButtonUp">
+                                <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="4" Height="4" Fill="#A8B0BC" Margin="1"/>
+                                        <Ellipse Width="4" Height="4" Fill="#A8B0BC" Margin="1"/>
+                                        <Ellipse Width="4" Height="4" Fill="#A8B0BC" Margin="1"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="4" Height="4" Fill="#A8B0BC" Margin="1"/>
+                                        <Ellipse Width="4" Height="4" Fill="#A8B0BC" Margin="1"/>
+                                        <Ellipse Width="4" Height="4" Fill="#A8B0BC" Margin="1"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
                 <!-- Selection -->
                 <DataGridTemplateColumn Width="48" CanUserResize="False" IsReadOnly="True">
                     <DataGridTemplateColumn.HeaderTemplate>
@@ -404,6 +433,29 @@
                             <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                       Style="{StaticResource WeeklyCheck}"
                                       Tag="{StaticResource SelectBrush}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Move" Width="70" CanUserResize="False" IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="▲"
+                                        Command="{Binding DataContext.MoveUpRowCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource ActionButton}"
+                                        Width="28" Height="28"
+                                        Padding="0"
+                                        Margin="0,0,4,0"
+                                        ToolTip="Move row up"/>
+                                <Button Content="▼"
+                                        Command="{Binding DataContext.MoveDownRowCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource ActionButton}"
+                                        Width="28" Height="28"
+                                        Padding="0"
+                                        ToolTip="Move row down"/>
+                            </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
@@ -483,55 +535,193 @@
                 <DataGridTemplateColumn Header="Doom" Width="80" IsReadOnly="True" HeaderStyle="{StaticResource RaidHeader}">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <CheckBox IsChecked="{Binding Doom, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                      Style="{StaticResource WeeklyCheck}"
-                                      Tag="{DynamicResource DoomBrush}"/>
+                            <Grid Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Border Background="Transparent" CornerRadius="7" x:Name="ExcludedBackground"/>
+                                <CheckBox IsChecked="{Binding Doom, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                          Tag="{DynamicResource DoomBrush}"
+                                          CommandParameter="Doom"
+                                          PreviewMouseRightButtonUp="RaidCell_RightClick">
+                                    <CheckBox.Style>
+                                        <Style TargetType="CheckBox" BasedOn="{StaticResource WeeklyCheck}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding DoomExcluded}" Value="True">
+                                                    <Setter Property="Opacity" Value="0.35"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </CheckBox.Style>
+                                </CheckBox>
+                                <Path Data="M0,0 L1,1 M1,0 L0,1"
+                                      Width="16" Height="16"
+                                      Stretch="Uniform"
+                                      Stroke="White" StrokeThickness="2"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      IsHitTestVisible="False"
+                                      Visibility="{Binding DoomExcluded, Converter={StaticResource BoolToVis}}"/>
+                            </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="Serp" Width="80" IsReadOnly="True" HeaderStyle="{StaticResource RaidHeader}">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <CheckBox IsChecked="{Binding Serp, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                      Style="{StaticResource WeeklyCheck}"
-                                      Tag="{DynamicResource SerpBrush}"/>
+                            <Grid Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Border Background="Transparent" CornerRadius="7"/>
+                                <CheckBox IsChecked="{Binding Serp, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                          Tag="{DynamicResource SerpBrush}"
+                                          CommandParameter="Serp"
+                                          PreviewMouseRightButtonUp="RaidCell_RightClick">
+                                    <CheckBox.Style>
+                                        <Style TargetType="CheckBox" BasedOn="{StaticResource WeeklyCheck}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SerpExcluded}" Value="True">
+                                                    <Setter Property="Opacity" Value="0.35"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </CheckBox.Style>
+                                </CheckBox>
+                                <Path Data="M0,0 L1,1 M1,0 L0,1"
+                                      Width="16" Height="16"
+                                      Stretch="Uniform"
+                                      Stroke="White" StrokeThickness="2"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      IsHitTestVisible="False"
+                                      Visibility="{Binding SerpExcluded, Converter={StaticResource BoolToVis}}"/>
+                            </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="Abyss" Width="80" IsReadOnly="True" HeaderStyle="{StaticResource RaidHeader}">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <CheckBox IsChecked="{Binding Abyss, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                      Style="{StaticResource WeeklyCheck}"
-                                      Tag="{DynamicResource AbyssBrush}"/>
+                            <Grid Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Border Background="Transparent" CornerRadius="7"/>
+                                <CheckBox IsChecked="{Binding Abyss, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                          Tag="{DynamicResource AbyssBrush}"
+                                          CommandParameter="Abyss"
+                                          PreviewMouseRightButtonUp="RaidCell_RightClick">
+                                    <CheckBox.Style>
+                                        <Style TargetType="CheckBox" BasedOn="{StaticResource WeeklyCheck}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding AbyssExcluded}" Value="True">
+                                                    <Setter Property="Opacity" Value="0.35"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </CheckBox.Style>
+                                </CheckBox>
+                                <Path Data="M0,0 L1,1 M1,0 L0,1"
+                                      Width="16" Height="16"
+                                      Stretch="Uniform"
+                                      Stroke="White" StrokeThickness="2"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      IsHitTestVisible="False"
+                                      Visibility="{Binding AbyssExcluded, Converter={StaticResource BoolToVis}}"/>
+                            </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="Challenge" Width="100" IsReadOnly="True" HeaderStyle="{StaticResource RaidHeader}">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <CheckBox IsChecked="{Binding Challenge, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                      Style="{StaticResource WeeklyCheck}"
-                                      Tag="{DynamicResource ChallengeBrush}"
-                                      ToolTip="{Binding DataContext.ChallengeName, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                            <Grid Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Border Background="Transparent" CornerRadius="7"/>
+                                <CheckBox IsChecked="{Binding Challenge, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                          Tag="{DynamicResource ChallengeBrush}"
+                                          CommandParameter="Challenge"
+                                          PreviewMouseRightButtonUp="RaidCell_RightClick"
+                                          ToolTip="{Binding DataContext.ChallengeName, RelativeSource={RelativeSource AncestorType=Window}}">
+                                    <CheckBox.Style>
+                                        <Style TargetType="CheckBox" BasedOn="{StaticResource WeeklyCheck}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ChallengeExcluded}" Value="True">
+                                                    <Setter Property="Opacity" Value="0.35"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </CheckBox.Style>
+                                </CheckBox>
+                                <Path Data="M0,0 L1,1 M1,0 L0,1"
+                                      Width="16" Height="16"
+                                      Stretch="Uniform"
+                                      Stroke="White" StrokeThickness="2"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      IsHitTestVisible="False"
+                                      Visibility="{Binding ChallengeExcluded, Converter={StaticResource BoolToVis}}"/>
+                            </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="Atma" Width="80" IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <CheckBox IsChecked="{Binding Atma, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                      Style="{StaticResource WeeklyCheck}"
-                                      Tag="{DynamicResource AtmaBrush}"/>
+                            <Grid Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Border Background="Transparent" CornerRadius="7"/>
+                                <CheckBox IsChecked="{Binding Atma, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                          Tag="{DynamicResource AtmaBrush}"
+                                          CommandParameter="Atma"
+                                          PreviewMouseRightButtonUp="RaidCell_RightClick">
+                                    <CheckBox.Style>
+                                        <Style TargetType="CheckBox" BasedOn="{StaticResource WeeklyCheck}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding AtmaExcluded}" Value="True">
+                                                    <Setter Property="Opacity" Value="0.35"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </CheckBox.Style>
+                                </CheckBox>
+                                <Path Data="M0,0 L1,1 M1,0 L0,1"
+                                      Width="16" Height="16"
+                                      Stretch="Uniform"
+                                      Stroke="White" StrokeThickness="2"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      IsHitTestVisible="False"
+                                      Visibility="{Binding AtmaExcluded, Converter={StaticResource BoolToVis}}"/>
+                            </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="Henir" Width="80" IsReadOnly="True">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <CheckBox IsChecked="{Binding Henir, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                                      Style="{StaticResource WeeklyCheck}"
-                                      Tag="{DynamicResource HenirBrush}"/>
+                            <Grid Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Border Background="Transparent" CornerRadius="7"/>
+                                <CheckBox IsChecked="{Binding Henir, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                          Tag="{DynamicResource HenirBrush}"
+                                          CommandParameter="Henir"
+                                          PreviewMouseRightButtonUp="RaidCell_RightClick">
+                                    <CheckBox.Style>
+                                        <Style TargetType="CheckBox" BasedOn="{StaticResource WeeklyCheck}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HenirExcluded}" Value="True">
+                                                    <Setter Property="Opacity" Value="0.35"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </CheckBox.Style>
+                                </CheckBox>
+                                <Path Data="M0,0 L1,1 M1,0 L0,1"
+                                      Width="16" Height="16"
+                                      Stretch="Uniform"
+                                      Stroke="White" StrokeThickness="2"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      IsHitTestVisible="False"
+                                      Visibility="{Binding HenirExcluded, Converter={StaticResource BoolToVis}}"/>
+                            </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
